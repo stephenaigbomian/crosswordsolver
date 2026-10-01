@@ -1,7 +1,15 @@
 import React, { Component, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
-import './styles/app.css';
+import appStyles from './styles/app.css?inline';
 import { App } from './App';
+
+// Inject CSS styles directly into document head so app.js is 100% self-contained
+if (typeof document !== 'undefined') {
+  const styleEl = document.createElement('style');
+  styleEl.setAttribute('data-app-styles', 'canva-crossword');
+  styleEl.textContent = appStyles;
+  document.head.appendChild(styleEl);
+}
 
 // Global error boundary to ensure the screen is never blank
 interface ErrorBoundaryProps {
@@ -64,7 +72,14 @@ class RootErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState
   }
 }
 
-const container = document.getElementById('root');
+// Ensure mount container exists (Canva iframe or standalone)
+let container = document.getElementById('root');
+if (!container && typeof document !== 'undefined') {
+  container = document.createElement('div');
+  container.id = 'root';
+  document.body.appendChild(container);
+}
+
 if (container) {
   const root = createRoot(container);
   root.render(

@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  base: '/crosswordsolver/',
+  base: './',
   plugins: [react()],
   server: {
     port: 8080,
@@ -14,5 +14,11 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        entryFileNames: 'app.js',
+        inlineDynamicImports: true,
+      },
+    },
   },
 });
