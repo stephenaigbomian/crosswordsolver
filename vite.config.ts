@@ -14,7 +14,9 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    cssCodeSplit: false,
     rollupOptions: {
+      input: 'src/index.tsx',
       output: {
         entryFileNames: 'app.js',
         inlineDynamicImports: true,
@@ -25,15 +27,9 @@ if (typeof globalThis !== 'undefined') {
     globalThis.canva_sdk.intents = {
       v1: {
         design: {
-          prepareDesignEditor: function(impl) {
-            if (globalThis.__canva_intent_registered__) return;
-            globalThis.__canva_intent_registered__ = true;
-            if (typeof impl === 'object' && impl && typeof impl.render === 'function') {
-              try { impl.render(); } catch(e) { console.error('Intent render error:', e); }
-            }
-          }
-        }
-      }
+          prepareDesignEditor: function() {},
+        },
+      },
     };
   }
 }

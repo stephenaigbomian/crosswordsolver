@@ -1,6 +1,9 @@
 import type { DesignEditorIntent } from '@canva/intents/design';
 import React, { Component, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { AppUiProvider } from '@canva/app-ui-kit';
+import uiKitStyles from '@canva/app-ui-kit/styles.ltr.css?inline';
+import appStyles from '../../styles/app.css?inline';
 import { App } from '../../App';
 
 // Global error boundary to ensure the screen is never blank
@@ -65,6 +68,16 @@ class RootErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState
 }
 
 export async function render(): Promise<void> {
+  // Inject all styles into document head only when Canva invokes render()
+  if (typeof document !== 'undefined') {
+    if (!document.querySelector('style[data-app-styles="canva-crossword"]')) {
+      const styleEl = document.createElement('style');
+      styleEl.setAttribute('data-app-styles', 'canva-crossword');
+      styleEl.textContent = `${uiKitStyles}\n${appStyles}`;
+      document.head.appendChild(styleEl);
+    }
+  }
+
   let container = document.getElementById('root');
   if (!container && typeof document !== 'undefined') {
     container = document.createElement('div');
@@ -72,16 +85,20 @@ export async function render(): Promise<void> {
     document.body.appendChild(container);
   }
 
-  if (container) {
-    const root = createRoot(container);
-    root.render(
-      <React.StrictMode>
+  if (!container) {
+    throw new Error("Unable to find element with id of 'root'");
+  }
+
+  const root = createRoot(container);
+  root.render(
+    <React.StrictMode>
+      <AppUiProvider>
         <RootErrorBoundary>
           <App />
         </RootErrorBoundary>
-      </React.StrictMode>
-    );
-  }
+      </AppUiProvider>
+    </React.StrictMode>
+  );
 }
 
 const designEditor: DesignEditorIntent = { render };
