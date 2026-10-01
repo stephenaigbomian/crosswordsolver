@@ -18,8 +18,27 @@ export default defineConfig({
       output: {
         entryFileNames: 'app.js',
         inlineDynamicImports: true,
+        banner: `
+if (typeof globalThis !== 'undefined') {
+  if (!globalThis.canva_sdk) globalThis.canva_sdk = {};
+  if (!globalThis.canva_sdk.intents) {
+    globalThis.canva_sdk.intents = {
+      v1: {
+        design: {
+          prepareDesignEditor: function(impl) {
+            if (globalThis.__canva_intent_registered__) return;
+            globalThis.__canva_intent_registered__ = true;
+            if (typeof impl === 'object' && impl && typeof impl.render === 'function') {
+              try { impl.render(); } catch(e) { console.error('Intent render error:', e); }
+            }
+          }
+        }
+      }
+    };
+  }
+}
+`,
       },
     },
   },
 });
-
