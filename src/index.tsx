@@ -1,7 +1,23 @@
-import React, { Component, ReactNode } from 'react';
-import { createRoot } from 'react-dom/client';
+// Safe global environment check for Canva SDK
+if (typeof window !== 'undefined') {
+  const win = window as any;
+  if (!win.canva_sdk) {
+    win.canva_sdk = {};
+  }
+  if (!win.canva_sdk.intents) {
+    win.canva_sdk.intents = {
+      v1: {
+        design: {
+          prepareDesignEditor: () => {},
+        },
+      },
+    };
+  }
+}
+
 import appStyles from './styles/app.css?inline';
-import { App } from './App';
+import { prepareDesignEditor } from '@canva/intents/design';
+import designEditor, { render } from './intents/design_editor';
 
 // Inject CSS styles directly into document head so app.js is 100% self-contained
 if (typeof document !== 'undefined') {
@@ -11,82 +27,11 @@ if (typeof document !== 'undefined') {
   document.head.appendChild(styleEl);
 }
 
-// Global error boundary to ensure the screen is never blank
-interface ErrorBoundaryProps {
-  children: ReactNode;
-}
+// Register Design Editor intent with Canva
+prepareDesignEditor(designEditor);
 
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
-}
-
-class RootErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error('App Error Caught:', error, info);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div
-          style={{
-            padding: '24px',
-            fontFamily: 'system-ui, sans-serif',
-            color: '#991b1b',
-            background: '#fee2e2',
-            borderRadius: '8px',
-            margin: '20px',
-          }}
-        >
-          <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>
-            Something went wrong
-          </h2>
-          <pre
-            style={{
-              whiteSpace: 'pre-wrap',
-              fontSize: '12px',
-              background: '#ffffff',
-              padding: '12px',
-              borderRadius: '4px',
-              border: '1px solid #fecaca',
-            }}
-          >
-            {this.state.error?.message}
-            {'\n\n'}
-            {this.state.error?.stack}
-          </pre>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
-
-// Ensure mount container exists (Canva iframe or standalone)
-let container = document.getElementById('root');
-if (!container && typeof document !== 'undefined') {
-  container = document.createElement('div');
-  container.id = 'root';
-  document.body.appendChild(container);
-}
-
-if (container) {
-  const root = createRoot(container);
-  root.render(
-    <React.StrictMode>
-      <RootErrorBoundary>
-        <App />
-      </RootErrorBoundary>
-    </React.StrictMode>
-  );
+// Standalone fallback: if not inside Canva's intent runner, render directly
+const isInsideCanva = typeof window !== 'undefined' && (window as any).__canva__ !== undefined;
+if (!isInsideCanva) {
+  render();
 }

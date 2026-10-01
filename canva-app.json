@@ -1,5 +1,10 @@
 {
   "$schema": "https://www.canva.dev/schemas/app/v1/manifest-schema.json",
+  "intent": {
+    "design_editor": {
+      "enrolled": true
+    }
+  },
   "runtime": {
     "permissions": [
       {
